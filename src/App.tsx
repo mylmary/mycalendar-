@@ -899,19 +899,41 @@ function App() {
         <div className="overlay-layer add-overlay event-overlay" onClick={() => setEventOpen(false)}>
           <section className="add-sheet event-sheet" onClick={event => event.stopPropagation()}>
             <div className="sheet-handle" />
-            <div className="sheet-heading"><div><p className="eyebrow">YOUR CALENDAR</p><h2>{editingEvent ? 'Edit event' : 'Create an event'}</h2></div><button className="icon-button" aria-label="Close event form" onClick={() => setEventOpen(false)}><X /></button></div>
+            <div className="sheet-heading">
+              <div><p className="eyebrow">YOUR CALENDAR</p><h2>{editingEvent ? 'Edit event' : 'Create an event'}</h2></div>
+              <button className="icon-button" aria-label="Close event form" onClick={() => setEventOpen(false)}><X /></button>
+            </div>
             <form onSubmit={saveEvent}>
-              <label htmlFor="event-title">Event title</label><input id="event-title" autoFocus maxLength={120} placeholder="Add a title" value={eventDraft.title} onChange={event => setEventDraft(current => ({ ...current, title: event.target.value }))} />
+              <label htmlFor="event-title">Event title</label>
+              <input id="event-title" autoFocus maxLength={120} placeholder="Add a title" value={eventDraft.title} onChange={event => setEventDraft(current => ({ ...current, title: event.target.value }))} />
               <div className="event-form-grid">
                 <div><label htmlFor="event-date">Date</label><input id="event-date" type="date" value={eventDraft.date} onChange={event => setEventDraft(current => ({ ...current, date: event.target.value }))} /></div>
                 <div className="all-day-control"><label><input type="checkbox" checked={eventDraft.allDay} onChange={event => setEventDraft(current => ({ ...current, allDay: event.target.checked }))} /> All day</label></div>
-                {!eventDraft.allDay && <><div><label htmlFor="event-start">Start time</label><input id="event-start" type="time" value={eventDraft.startTime} onChange={event => setEventDraft(current => ({ ...current, startTime: event.target.value }))} /></div><div><label htmlFor="event-end">End time</label><input id="event-end" type="time" value={eventDraft.endTime} onChange={event => setEventDraft(current => ({ ...current, endTime: event.target.value }))} /></div>}
+                {!eventDraft.allDay && (
+                  <>
+                    <div><label htmlFor="event-start">Start time</label><input id="event-start" type="time" value={eventDraft.startTime} onChange={event => setEventDraft(current => ({ ...current, startTime: event.target.value }))} /></div>
+                    <div><label htmlFor="event-end">End time</label><input id="event-end" type="time" value={eventDraft.endTime} onChange={event => setEventDraft(current => ({ ...current, endTime: event.target.value }))} /></div>
+                  </>
+                )}
               </div>
               {!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime && <p className="event-validation">End time must be later than start time.</p>}
-              <label htmlFor="event-location">Location</label><input id="event-location" placeholder="Add a location" value={eventDraft.location} onChange={event => setEventDraft(current => ({ ...current, location: event.target.value }))} />
-              <label htmlFor="event-description">Description</label><textarea id="event-description" rows={3} placeholder="Add notes or details" value={eventDraft.description} onChange={event => setEventDraft(current => ({ ...current, description: event.target.value }))} />
-              <label>Event colour</label><div className="event-colour-picker">{[['#dcd8fb','Lavender'],['#d8e8fb','Blue'],['#d8eee3','Mint'],['#f9dfd5','Peach'],['#f6e9b9','Butter'],['#f4dce8','Rose']].map(([color,name]) => <button type="button" key={color} aria-label={name + ' event colour'} title={name} className={eventDraft.color === color ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: color }} onClick={() => setEventDraft(current => ({ ...current, color }))} />)}</div>
-              <div className="event-form-actions">{editingEvent && <button type="button" className="event-delete-button" onClick={() => deleteEvent(editingEvent)}><Trash2 size={16} /> Delete</button>}<button className="primary-button full-button" type="submit" disabled={!eventDraft.title.trim() || (!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime)}>{editingEvent ? 'Save changes' : 'Save event'}</button></div>
+              <label htmlFor="event-location">Location</label>
+              <input id="event-location" placeholder="Add a location" value={eventDraft.location} onChange={event => setEventDraft(current => ({ ...current, location: event.target.value }))} />
+              <label htmlFor="event-description">Description</label>
+              <textarea id="event-description" rows={3} placeholder="Add notes or details" value={eventDraft.description} onChange={event => setEventDraft(current => ({ ...current, description: event.target.value }))} />
+              <label>Event colour</label>
+              <div className="event-colour-picker">
+                <button type="button" aria-label="Lavender event colour" title="Lavender" className={eventDraft.color === '#dcd8fb' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#dcd8fb' }} onClick={() => setEventDraft(current => ({ ...current, color: '#dcd8fb' }))} />
+                <button type="button" aria-label="Blue event colour" title="Blue" className={eventDraft.color === '#d8e8fb' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#d8e8fb' }} onClick={() => setEventDraft(current => ({ ...current, color: '#d8e8fb' }))} />
+                <button type="button" aria-label="Mint event colour" title="Mint" className={eventDraft.color === '#d8eee3' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#d8eee3' }} onClick={() => setEventDraft(current => ({ ...current, color: '#d8eee3' }))} />
+                <button type="button" aria-label="Peach event colour" title="Peach" className={eventDraft.color === '#f9dfd5' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#f9dfd5' }} onClick={() => setEventDraft(current => ({ ...current, color: '#f9dfd5' }))} />
+                <button type="button" aria-label="Butter event colour" title="Butter" className={eventDraft.color === '#f6e9b9' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#f6e9b9' }} onClick={() => setEventDraft(current => ({ ...current, color: '#f6e9b9' }))} />
+                <button type="button" aria-label="Rose event colour" title="Rose" className={eventDraft.color === '#f4dce8' ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: '#f4dce8' }} onClick={() => setEventDraft(current => ({ ...current, color: '#f4dce8' }))} />
+              </div>
+              <div className="event-form-actions">
+                {editingEvent && <button type="button" className="event-delete-button" onClick={() => deleteEvent(editingEvent)}><Trash2 size={16} /> Delete</button>}
+                <button className="primary-button full-button" type="submit" disabled={!eventDraft.title.trim() || (!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime)}>{editingEvent ? 'Save changes' : 'Save event'}</button>
+              </div>
             </form>
           </section>
         </div>
