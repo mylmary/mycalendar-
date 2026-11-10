@@ -45,6 +45,17 @@ function readTasks() {
     return [];
   }
 }
+function readEvents() {
+  try {
+    const value = JSON.parse(localStorage.getItem('mycalendar_events_v1') || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch { return []; }
+}
+function timeToMinutes(value) {
+  if (!value) return 0;
+  const [hours, minutes] = value.split(':').map(Number);
+  return hours * 60 + minutes;
+}
 function monthLabel(date) {
   return date.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
 }
@@ -54,6 +65,11 @@ function sameMonth(a, b) {
 
 function App() {
   const [tasks, setTasks] = useState(readTasks);
+  const [events, setEvents] = useState(readEvents);
+  const [calendarView, setCalendarView] = useState('month');
+  const [eventOpen, setEventOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
+  const [eventDraft, setEventDraft] = useState({ title: '', date: todayKey(), startTime: '09:00', endTime: '10:00', location: '', description: '', color: '#dcd8fb', allDay: false });
   const [screen, setScreen] = useState('tasks');
   const [selectedDate, setSelectedDate] = useState(todayKey());
   const [monthDate, setMonthDate] = useState(() => new Date());
@@ -73,6 +89,10 @@ function App() {
   useEffect(() => {
     localStorage.setItem(STORE_KEY, JSON.stringify(tasks));
   }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem('mycalendar_events_v1', JSON.stringify(events));
+  }, [events]);
 
   const completedCount = tasks.filter(task => task.done).length;
   const selectedTasks = tasks
@@ -96,6 +116,17 @@ function App() {
     )
   );
 
+  const weekDays = useMemo(() => {
+    const selected = fromKey(selectedDate);
+    const start = new Date(selected);
+    start.setDate(selected.getDate() - selected.getDay());
+    return Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + index);
+      return date;
+    });
+  }, [selectedDate]);
+
   const days = useMemo(() => {
     const first = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
     const start = new Date(first);
@@ -106,6 +137,45 @@ function App() {
       return date;
     });
   }, [monthDate]);
+
+  function openEvent(date = selectedDate, existing = null) {
+    setEditingEvent(existing ? existing.id : null);
+    setEventDraft(existing ? {
+      title: existing.title || '', date: existing.date || date,
+      startTime: existing.startTime || '09:00', endTime: existing.endTime || '10:00',
+      location: existing.location || '', description: existing.description || '',
+      color: existing.color || '#dcd8fb', allDay: Boolean(existing.allDay),
+    } : {
+      title: '', date, startTime: '09:00', endTime: '10:00',
+      location: '', description: '', color: '#dcd8fb', allDay: false,
+    });
+    setEventOpen(true);
+  }
+  function saveEvent(event) {
+    event.preventDefault();
+    const title = eventDraft.title.trim();
+    if (!title || (!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime)) return;
+    const record = {
+      ...eventDraft, title,
+      id: editingEvent || globalThis.crypto?.randomUUID?.() || String(Date.now()),
+      createdAt: editingEvent ? events.find(item => item.id === editingEvent)?.createdAt || Date.now() : Date.now(),
+    };
+    setEvents(current => editingEvent ? current.map(item => item.id === editingEvent ? record : item) : [...current, record]);
+    setSelectedDate(eventDraft.date);
+    const date = fromKey(eventDraft.date);
+    setMonthDate(new Date(date.getFullYear(), date.getMonth(), 1));
+    setEventOpen(false);
+    setEditingEvent(null);
+    setNotice(editingEvent ? 'Event updated' : 'Event added to your calendar');
+    window.setTimeout(() => setNotice(''), 1800);
+  }
+  function deleteEvent(id) {
+    setEvents(current => current.filter(item => item.id !== id));
+    setEventOpen(false);
+    setEditingEvent(null);
+    setNotice('Event deleted');
+    window.setTimeout(() => setNotice(''), 1600);
+  }
 
   function changeMonth(amount) {
     setMonthDirection(amount);
@@ -425,15 +495,65 @@ function App() {
           aria-hidden={screen !== 'calendar'}
         >
           <div className="page-heading calendar-heading">
-            <div>
-              <p className="eyebrow">YOUR PLANS</p>
-              <h1>Calendar</h1>
-              <p className="subheading">A little look at what’s ahead.</p>
+            <div><p className="eyebrow">YOUR PLANS</p><h1>Calendar</h1><p className="subheading">A little look at what’s ahead.</p></div>
+            <div className="calendar-heading-actions">
+              {selectedDate !== todayKey() && <button className="today-link" onClick={goToday}>Tap to go today</button>}
+              <button className="primary-button" onClick={() => openEvent(selectedDate)}><Plus size={17} /> Add event</button>
             </div>
-            {selectedDate !== todayKey() && (
-              <button className="today-link" onClick={goToday}>
-                Tap to go today
-              </button>
+          </div>
+          <div className="desktop-calendar">
+            <div className="desktop-calendar-toolbar">
+              <div className="desktop-date-controls">
+                <button className="today-link" onClick={goToday}>Today</button>
+                <button className="round-nav" aria-label="Previous period" onClick={() => calendarView === 'month' ? changeMonth(-1) : chooseDate(new Date(fromKey(selectedDate).getFullYear(), fromKey(selectedDate).getMonth(), fromKey(selectedDate).getDate() - (calendarView === 'week' ? 7 : 1)))}><ChevronLeft /></button>
+                <button className="round-nav" aria-label="Next period" onClick={() => calendarView === 'month' ? changeMonth(1) : chooseDate(new Date(fromKey(selectedDate).getFullYear(), fromKey(selectedDate).getMonth(), fromKey(selectedDate).getDate() + (calendarView === 'week' ? 7 : 1)))}><ChevronRight /></button>
+                <h2>{calendarView === 'month' ? monthLabel(monthDate) : calendarView === 'week' ? weekDays[0].toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' – ' + weekDays[6].toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : dateObject.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h2>
+              </div>
+              <div className="desktop-calendar-actions">
+                <div className="calendar-view-switch">{['month', 'week', 'day'].map(view => <button key={view} className={calendarView === view ? 'selected-view' : ''} onClick={() => setCalendarView(view)}>{view[0].toUpperCase() + view.slice(1)}</button>)}</div>
+                <button className="primary-button" onClick={() => openEvent(selectedDate)}><Plus size={16} /> Create</button>
+              </div>
+            </div>
+            {calendarView === 'month' ? (
+              <div className="desktop-month-view">
+                <div className="desktop-weekdays">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => <span key={day}>{day}</span>)}</div>
+                <div className="desktop-month-grid">
+                  {days.map(date => {
+                    const key = toKey(date);
+                    const dayEvents = events.filter(item => item.date === key).sort((a, b) => (a.allDay ? -1 : 1) - (b.allDay ? -1 : 1) || (a.startTime || '').localeCompare(b.startTime || ''));
+                    return <div className={'desktop-month-cell ' + (!sameMonth(date, monthDate) ? 'outside-month-cell ' : '') + (key === selectedDate ? 'active-date-cell' : '')} key={key} onClick={() => chooseDate(date)}>
+                      <button className={'desktop-date-number ' + (key === todayKey() ? 'desktop-today' : '')} onClick={event => { event.stopPropagation(); chooseDate(date); }}>{date.getDate()}</button>
+                      <div className="desktop-month-events">
+                        {dayEvents.slice(0, 3).map(item => <button key={item.id} className="desktop-event-chip" style={{ background: item.color }} onClick={event => { event.stopPropagation(); openEvent(key, item); }}><span>{item.allDay ? '' : item.startTime + ' '}</span>{item.title}</button>)}
+                        {dayEvents.length > 3 && <span className="more-events">+{dayEvents.length - 3} more</span>}
+                      </div>
+                      <button className="add-cell-event" aria-label={'Add event on ' + key} onClick={event => { event.stopPropagation(); chooseDate(date); openEvent(key); }}><Plus size={14} /></button>
+                    </div>;
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="desktop-time-view">
+                <div className="time-view-head" style={{ gridTemplateColumns: '58px repeat(' + (calendarView === 'week' ? 7 : 1) + ', minmax(0, 1fr))' }}><div className="time-gutter-head" />
+                  {(calendarView === 'week' ? weekDays : [dateObject]).map(date => <button key={toKey(date)} className={'time-day-head ' + (toKey(date) === todayKey() ? 'time-today' : '')} onClick={() => chooseDate(date)}><span>{date.toLocaleDateString(undefined, { weekday: 'short' })}</span><strong>{date.getDate()}</strong></button>)}
+                </div>
+                <div className="time-view-scroll">
+                  <div className="time-view-body" style={{ gridTemplateColumns: '58px repeat(' + (calendarView === 'week' ? 7 : 1) + ', minmax(110px, 1fr))' }}>
+                    <div className="time-label-column">{Array.from({ length: 24 }, (_, hour) => <div className="time-hour-label" key={hour}>{String(hour).padStart(2, '0')}:00</div>)}</div>
+                    {(calendarView === 'week' ? weekDays : [dateObject]).map(date => {
+                      const key = toKey(date), dayEvents = events.filter(item => item.date === key);
+                      return <div className="time-day-column" key={key}>
+                        {Array.from({ length: 24 }, (_, hour) => <button className="time-hour-slot" key={hour} aria-label={'Add event at ' + hour + ':00'} onClick={() => { setSelectedDate(key); openEvent(key); setEventDraft(current => ({ ...current, date: key, startTime: String(hour).padStart(2, '0') + ':00', endTime: hour === 23 ? '23:59' : String(hour + 1).padStart(2, '0') + ':00' })); }} />)}
+                        {dayEvents.map(item => {
+                          const top = item.allDay ? 2 : timeToMinutes(item.startTime);
+                          const height = item.allDay ? 30 : Math.max(28, timeToMinutes(item.endTime) - top);
+                          return <button key={item.id} className="timed-event-block" style={{ top: top + 'px', height: height + 'px', background: item.color }} onClick={() => openEvent(key, item)}><strong>{item.title}</strong><span>{item.allDay ? 'All day' : item.startTime + ' – ' + item.endTime}</span>{item.location && <small>{item.location}</small>}</button>;
+                        })}
+                      </div>;
+                    })}
+                  </div>
+                </div>
+              </div>
             )}
           </div>
           <div className="calendar-card">
@@ -531,6 +651,11 @@ function App() {
               <Plus size={17} /> Add task
             </button>
           </div>
+          {events.filter(item => item.date === selectedDate).length > 0 && (
+            <div className="calendar-day-tasks mobile-event-list">
+              {events.filter(item => item.date === selectedDate).map(item => <button key={item.id} className="mobile-event-row" onClick={() => openEvent(selectedDate, item)}><i style={{ background: item.color }} /><span><strong>{item.title}</strong><small>{item.allDay ? 'All day' : item.startTime + ' – ' + item.endTime}{item.location ? ' · ' + item.location : ''}</small></span></button>)}
+            </div>
+          )}
           {selectedTasks.length > 0 && (
             <div className="calendar-day-tasks">
               {selectedTasks.map(task => (
@@ -766,6 +891,27 @@ function App() {
               >
                 <Plus size={18} /> Save task
               </button>
+            </form>
+          </section>
+        </div>
+      )}
+      {eventOpen && (
+        <div className="overlay-layer add-overlay event-overlay" onClick={() => setEventOpen(false)}>
+          <section className="add-sheet event-sheet" onClick={event => event.stopPropagation()}>
+            <div className="sheet-handle" />
+            <div className="sheet-heading"><div><p className="eyebrow">YOUR CALENDAR</p><h2>{editingEvent ? 'Edit event' : 'Create an event'}</h2></div><button className="icon-button" aria-label="Close event form" onClick={() => setEventOpen(false)}><X /></button></div>
+            <form onSubmit={saveEvent}>
+              <label htmlFor="event-title">Event title</label><input id="event-title" autoFocus maxLength={120} placeholder="Add a title" value={eventDraft.title} onChange={event => setEventDraft(current => ({ ...current, title: event.target.value }))} />
+              <div className="event-form-grid">
+                <div><label htmlFor="event-date">Date</label><input id="event-date" type="date" value={eventDraft.date} onChange={event => setEventDraft(current => ({ ...current, date: event.target.value }))} /></div>
+                <div className="all-day-control"><label><input type="checkbox" checked={eventDraft.allDay} onChange={event => setEventDraft(current => ({ ...current, allDay: event.target.checked }))} /> All day</label></div>
+                {!eventDraft.allDay && <><div><label htmlFor="event-start">Start time</label><input id="event-start" type="time" value={eventDraft.startTime} onChange={event => setEventDraft(current => ({ ...current, startTime: event.target.value }))} /></div><div><label htmlFor="event-end">End time</label><input id="event-end" type="time" value={eventDraft.endTime} onChange={event => setEventDraft(current => ({ ...current, endTime: event.target.value }))} /></div>}
+              </div>
+              {!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime && <p className="event-validation">End time must be later than start time.</p>}
+              <label htmlFor="event-location">Location</label><input id="event-location" placeholder="Add a location" value={eventDraft.location} onChange={event => setEventDraft(current => ({ ...current, location: event.target.value }))} />
+              <label htmlFor="event-description">Description</label><textarea id="event-description" rows={3} placeholder="Add notes or details" value={eventDraft.description} onChange={event => setEventDraft(current => ({ ...current, description: event.target.value }))} />
+              <label>Event colour</label><div className="event-colour-picker">{[['#dcd8fb','Lavender'],['#d8e8fb','Blue'],['#d8eee3','Mint'],['#f9dfd5','Peach'],['#f6e9b9','Butter'],['#f4dce8','Rose']].map(([color,name]) => <button type="button" key={color} aria-label={name + ' event colour'} title={name} className={eventDraft.color === color ? 'colour-choice chosen-colour' : 'colour-choice'} style={{ background: color }} onClick={() => setEventDraft(current => ({ ...current, color }))} />)}</div>
+              <div className="event-form-actions">{editingEvent && <button type="button" className="event-delete-button" onClick={() => deleteEvent(editingEvent)}><Trash2 size={16} /> Delete</button>}<button className="primary-button full-button" type="submit" disabled={!eventDraft.title.trim() || (!eventDraft.allDay && eventDraft.endTime <= eventDraft.startTime)}>{editingEvent ? 'Save changes' : 'Save event'}</button></div>
             </form>
           </section>
         </div>
