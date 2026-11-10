@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Add, complete, delete and retain a task",
+    "sanity": true,
+    "viewport": "mobile",
+    "covers": ["task creation", "task completion", "Little Wins count", "task deletion", "browser persistence after reload"],
+    "description": "Checks the primary task workflow and confirms task changes remain saved in the browser.",
+    "steps": ["Open Tasks and add a task named 'Read for ten minutes'", "Complete the task and observe the Little Wins count", "Refresh the page and confirm the completed task remains", "Delete the task"],
+    "expected": "The task is created, completion updates Little Wins, the completed state survives refresh, and deletion removes the task."
+  },
+  {
+    "name": "Navigate calendar dates and show task markers",
+    "viewport": "desktop",
+    "covers": ["calendar month navigation", "date selection", "task dots", "date-specific task list"],
+    "description": "Verifies month navigation and that dates with tasks are marked and show their associated tasks.",
+    "steps": ["Open Calendar", "Move to the next month and back", "Select a date and add a task for that date", "Return to Calendar and inspect the selected date"],
+    "expected": "The month changes in both directions, the date with a task displays a dot, and selecting it shows the task for that date."
+  },
+  {
+    "name": "Open account pages",
+    "viewport": "desktop",
+    "covers": ["account menu", "dashboard", "statistics", "settings", "more menu"],
+    "description": "Checks that the account menu exposes its secondary pages without adding extra primary navigation tabs.",
+    "steps": ["Open the account menu", "Open Dashboard and view task totals", "Return and open Statistics", "Open Settings and More"],
+    "expected": "Dashboard, Statistics, Settings and More open from the account menu and the primary navigation remains Tasks and Calendar only."
+  },
+  {
+    "name": "Prevent an empty task from being saved",
+    "viewport": "mobile",
+    "covers": ["empty task validation", "add sheet", "mobile add flow"],
+    "description": "Ensures the add sheet cannot save a task without a title.",
+    "steps": ["Open the add task sheet", "Leave the task title empty", "Inspect the Save task control"],
+    "expected": "The Save task control is disabled and no empty task is added."
+  }
+]
