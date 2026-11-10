@@ -73,63 +73,30 @@
     "expected": "The Save task control is disabled and no empty task is added."
   },
   {
-    "name": "Create, edit and delete a detailed calendar event",
+    "name": "Create, navigate, edit and delete calendar events",
     "viewport": "desktop",
     "covers": [
-      "event creation",
-      "event date and time",
+      "desktop month week and day views",
+      "calendar date navigation",
+      "event title and date",
+      "start and end time validation",
+      "all-day event",
       "location and description",
       "pastel event colours",
-      "event editing",
-      "event deletion",
-      "event persistence after reload"
+      "event editing and deletion",
+      "event persistence",
+      "mobile event list"
     ],
-    "description": "Verifies calendar events can be created with full details, edited, deleted and retained after refreshing.",
+    "description": "Verifies desktop calendar views and the complete event workflow while retaining mobile event access.",
     "steps": [
-      "Open Calendar on desktop and choose Create",
+      "Open Calendar and switch between Month, Week and Day views",
+      "Choose Create and leave the title empty to check validation",
       "Enter a title, date, start and end time, location and description",
       "Choose a pastel colour and save the event",
       "Open the event block, change its location and save",
-      "Refresh the page and confirm the updated event remains",
-      "Delete the event"
+      "Refresh and confirm the updated event remains, then delete it",
+      "On mobile, select the event date and confirm the event appears in the day's list"
     ],
-    "expected": "The event appears on the correct date and time with its selected pastel colour, can be edited, survives refresh and can be deleted."
-  },
-  {
-    "name": "Navigate desktop calendar views and create an event from a time slot",
-    "viewport": "desktop",
-    "covers": [
-      "desktop month view",
-      "week view",
-      "day view",
-      "date navigation",
-      "time-slot event creation"
-    ],
-    "description": "Checks month, week and day layouts and confirms a selected hourly slot pre-fills the event time.",
-    "steps": [
-      "Open Calendar and switch between Month, Week and Day",
-      "Navigate to the next week and return to Today",
-      "Click an hourly slot in Week view",
-      "Save an event with a title"
-    ],
-    "expected": "Each view displays the appropriate dates, navigation changes the displayed period, and the new event appears at the selected time."
-  },
-  {
-    "name": "Validate event details and preserve the mobile calendar",
-    "viewport": "mobile",
-    "covers": [
-      "required event title",
-      "end time validation",
-      "mobile calendar layout",
-      "mobile event details"
-    ],
-    "description": "Verifies invalid event details are blocked and the compact mobile calendar remains usable.",
-    "steps": [
-      "Open Calendar on mobile and add an event",
-      "Leave the title empty and inspect Save event",
-      "Enter a title but set the end time earlier than the start time",
-      "Correct the time range and save"
-    ],
-    "expected": "Saving is disabled until a title is present and the end time is later than the start; after saving, the event appears in the selected day's mobile event list."
+    "expected": "The calendar switches views and navigates dates; invalid details cannot be saved; valid events display at the correct date and time in the selected pastel colour, retain details after refresh, can be edited and deleted, and appear in the mobile selected-day list."
   }
 ]
