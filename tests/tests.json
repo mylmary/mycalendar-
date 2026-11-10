@@ -3,33 +3,133 @@
     "name": "Add, complete, delete and retain a task",
     "sanity": true,
     "viewport": "mobile",
-    "covers": ["task creation", "task completion", "Little Wins count", "task deletion", "browser persistence after reload"],
+    "covers": [
+      "task creation",
+      "task completion",
+      "Little Wins count",
+      "task deletion",
+      "browser persistence after reload"
+    ],
     "description": "Checks the primary task workflow and confirms task changes remain saved in the browser.",
-    "steps": ["Open Tasks and add a task named 'Read for ten minutes'", "Complete the task and observe the Little Wins count", "Refresh the page and confirm the completed task remains", "Delete the task"],
+    "steps": [
+      "Open Tasks and add a task named 'Read for ten minutes'",
+      "Complete the task and observe the Little Wins count",
+      "Refresh the page and confirm the completed task remains",
+      "Delete the task"
+    ],
     "expected": "The task is created, completion updates Little Wins, the completed state survives refresh, and deletion removes the task."
   },
   {
     "name": "Navigate calendar dates and show task markers",
     "viewport": "desktop",
-    "covers": ["calendar month navigation", "date selection", "task dots", "date-specific task list"],
+    "covers": [
+      "calendar month navigation",
+      "date selection",
+      "task dots",
+      "date-specific task list"
+    ],
     "description": "Verifies month navigation and that dates with tasks are marked and show their associated tasks.",
-    "steps": ["Open Calendar", "Move to the next month and back", "Select a date and add a task for that date", "Return to Calendar and inspect the selected date"],
+    "steps": [
+      "Open Calendar",
+      "Move to the next month and back",
+      "Select a date and add a task for that date",
+      "Return to Calendar and inspect the selected date"
+    ],
     "expected": "The month changes in both directions, the date with a task displays a dot, and selecting it shows the task for that date."
   },
   {
     "name": "Open account pages",
     "viewport": "desktop",
-    "covers": ["account menu", "dashboard", "statistics", "settings", "more menu"],
+    "covers": [
+      "account menu",
+      "dashboard",
+      "statistics",
+      "settings",
+      "more menu"
+    ],
     "description": "Checks that the account menu exposes its secondary pages without adding extra primary navigation tabs.",
-    "steps": ["Open the account menu", "Open Dashboard and view task totals", "Return and open Statistics", "Open Settings and More"],
+    "steps": [
+      "Open the account menu",
+      "Open Dashboard and view task totals",
+      "Return and open Statistics",
+      "Open Settings and More"
+    ],
     "expected": "Dashboard, Statistics, Settings and More open from the account menu and the primary navigation remains Tasks and Calendar only."
   },
   {
     "name": "Prevent an empty task from being saved",
     "viewport": "mobile",
-    "covers": ["empty task validation", "add sheet", "mobile add flow"],
+    "covers": [
+      "empty task validation",
+      "add sheet",
+      "mobile add flow"
+    ],
     "description": "Ensures the add sheet cannot save a task without a title.",
-    "steps": ["Open the add task sheet", "Leave the task title empty", "Inspect the Save task control"],
+    "steps": [
+      "Open the add task sheet",
+      "Leave the task title empty",
+      "Inspect the Save task control"
+    ],
     "expected": "The Save task control is disabled and no empty task is added."
+  },
+  {
+    "name": "Create, edit and delete a detailed calendar event",
+    "viewport": "desktop",
+    "covers": [
+      "event creation",
+      "event date and time",
+      "location and description",
+      "pastel event colours",
+      "event editing",
+      "event deletion",
+      "event persistence after reload"
+    ],
+    "description": "Verifies calendar events can be created with full details, edited, deleted and retained after refreshing.",
+    "steps": [
+      "Open Calendar on desktop and choose Create",
+      "Enter a title, date, start and end time, location and description",
+      "Choose a pastel colour and save the event",
+      "Open the event block, change its location and save",
+      "Refresh the page and confirm the updated event remains",
+      "Delete the event"
+    ],
+    "expected": "The event appears on the correct date and time with its selected pastel colour, can be edited, survives refresh and can be deleted."
+  },
+  {
+    "name": "Navigate desktop calendar views and create an event from a time slot",
+    "viewport": "desktop",
+    "covers": [
+      "desktop month view",
+      "week view",
+      "day view",
+      "date navigation",
+      "time-slot event creation"
+    ],
+    "description": "Checks month, week and day layouts and confirms a selected hourly slot pre-fills the event time.",
+    "steps": [
+      "Open Calendar and switch between Month, Week and Day",
+      "Navigate to the next week and return to Today",
+      "Click an hourly slot in Week view",
+      "Save an event with a title"
+    ],
+    "expected": "Each view displays the appropriate dates, navigation changes the displayed period, and the new event appears at the selected time."
+  },
+  {
+    "name": "Validate event details and preserve the mobile calendar",
+    "viewport": "mobile",
+    "covers": [
+      "required event title",
+      "end time validation",
+      "mobile calendar layout",
+      "mobile event details"
+    ],
+    "description": "Verifies invalid event details are blocked and the compact mobile calendar remains usable.",
+    "steps": [
+      "Open Calendar on mobile and add an event",
+      "Leave the title empty and inspect Save event",
+      "Enter a title but set the end time earlier than the start time",
+      "Correct the time range and save"
+    ],
+    "expected": "Saving is disabled until a title is present and the end time is later than the start; after saving, the event appears in the selected day's mobile event list."
   }
 ]
